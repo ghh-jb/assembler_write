@@ -1,0 +1,9 @@
+Package: c.ghh.asmwriter
+Name: assembler_write
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: A tweak only for developers and for hacking enthusiasts who want to make cheats for their games and work with assembly a little bit:))) 
+Maintainer: untether
+Author: untether
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000)

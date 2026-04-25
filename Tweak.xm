@@ -77,6 +77,23 @@ int kernwrite(uint32_t src, uint64_t dst) {
 	}
 	return kr;
 }
+void generate_branch_insn_array(uint64_t target_addr, uint32_t insn_array[5]) {
+	uint16_t part0 = (target_addr >> 0) & 0xFFFF;
+	uint16_t part1 = (target_addr >> 16) & 0xFFFF;
+	uint16_t part2 = (target_addr >> 32) & 0xFFFF;
+	uint16_t part3 = (target_addr >> 48) & 0xFFFF;
+	insn_array[0] = 0xD2800000 | (3 << 21) | (part3 << 5) | 16;  // movz x16, #part3, LSL #48
+	insn_array[1] = 0xF2800000 | (2 << 21) | (part2 << 5) | 16;  // movk x16, #part2, LSL #32
+	insn_array[2] = 0xF2800000 | (1 << 21) | (part1 << 5) | 16;  // movk x16, #part1, LSL #16
+	insn_array[3] = 0xF2800000 | (0 << 21) | (part0 << 5) | 16;  // movk x16, #part0, LSL #0
+	insn_array[4] = 0xD61F0200;  								 // br x16
+}
+
+void logger(void) {
+	NSLog(@"[assembler_write] this should not be called.");
+	return;
+}
+
 
 
 void* patchfind(void* args) {
@@ -90,7 +107,7 @@ void* patchfind(void* args) {
 	NSLog(@"[assembler_write] Slide: 0x%llx", execSlide);
 
 
-	uint32_t off = 0x41414141; //  this is the offset in binaryninja for example. Insewt it here.
+	uint32_t off = 0x41414141; //  this is the offset in binaryninja for example. Insert it here.
 	// FIXME: FIND YOUR OFFSET.
 	uint64_t dst = execSlide + off; // this is the destination. Due to ASLR the binary in memory must be calculated using _dyld_get_image_vmaddr_slide to get execSlide of the binary. Them we add our offset to it.
 	kernwrite(mov_x0_0x1, dst);  // this is the main write primitive. 
@@ -101,6 +118,21 @@ void* patchfind(void* args) {
 	// This is an example of code intercepting the function at offset 0x41414141 that must return bool, but now returns True at any time.
 
 	// ATTENTION!!! I have NOT TESTED this with PAC! This might NOT work with it. I have userspace PAC *COMPLETELY* disabled on my Fugu15_Rootful.
+
+
+	// And here is an example of how to make a jump to your own code, though I dont really know how can it be used here...
+	void (*ptr)(void) = logger; // get a raw void* pointer to our function
+	
+	uint64_t target_addr = (uint64_t)ptr; // convert to uint64 to match input of fn
+	uint32_t insn[5]; // there we will store instructions to jump to.
+	generate_branch_insn_array(target_addr, insn); // this generates the chain of instructions and puts to insn array
+
+	// and now just walk through then to write them to desired addr.
+	for (int i = 0; i<= 4; i++) {
+		kernwrite(dst, insn[i]);
+		dst = dst + 4; // should land on next insn
+	}
+	kernwrite(dst, ret); // return. It should now print a not invoked function
 
 // Add your cheats here.
 	return NULL;

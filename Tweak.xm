@@ -143,7 +143,7 @@ void* patchfind(void* args) {
 		kernwrite(dst, insn[i]);
 		dst = dst + 4; // should land on next insn
 	}
-	kernwrite(dst, ret); // return. It should now print a not invoked function
+	kernwrite(ret, dst); // return. It should now print a not invoked function
 
 // Add your cheats here.
 	return NULL;

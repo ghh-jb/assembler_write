@@ -140,7 +140,7 @@ void* patchfind(void* args) {
 
 	// and now just walk through then to write them to desired addr.
 	for (int i = 0; i<= 4; i++) {
-		kernwrite(dst, insn[i]);
+		kernwrite(insn[i], dst);
 		dst = dst + 4; // should land on next insn
 	}
 	kernwrite(ret, dst); // return. It should now print a not invoked function

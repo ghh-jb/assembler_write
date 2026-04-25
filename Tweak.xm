@@ -89,6 +89,17 @@ void generate_branch_insn_array(uint64_t target_addr, uint32_t insn_array[5]) {
 	insn_array[4] = 0xD61F0200;  								 // br x16
 }
 
+void write_pattern_return_true(uint64_t absolute_addr /*like dst*/) {
+	kernwrite(mov_x0_0x1, absolute_addr);
+	kernwrite(ret, absolute_addr + 4);
+	return;
+}
+void write_pattern_return_false(uint64_t absolute_addr /*like dst*/) {
+	kernwrite(mov_x0_0x0, absolute_addr);
+	kernwrite(ret, absolute_addr + 4);
+	return;
+}
+
 void logger(void) {
 	NSLog(@"[assembler_write] this should not be called.");
 	return;
